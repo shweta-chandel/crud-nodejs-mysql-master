@@ -40,7 +40,6 @@ app.get('/', (req, res) => {
             } else if(password !== null) {
                 return res.send('Passwords must 6 character')
                 }
-    let hashedPassword = await bcrypt.hash(password, 8)
     mysqlConnection.query("INSERT INTO signup SET ?", data, (err, results) => {
       if (err) {
         return res.send(err);
