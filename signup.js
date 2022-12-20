@@ -76,7 +76,7 @@ app.get('/login', (req, res) => {
   const username = req.body.username;
   const password = req.body.password;
   const data = { username, password };
-  mysqlConnection.query(`SELECT * FROM signup WHERE username = "${username}"`, (err, rows, results) => {
+  mysqlConnection.query('SELECT * FROM signup WHERE username = ? AND password = ?', [username, password], function (err, rows) {
     if (rows.length > 0) {
       return res.send("logged in")
     }
@@ -88,15 +88,17 @@ app.get('/login', (req, res) => {
 
 // changed password//
 app.get('/changedpassword', (req, res) => {
-  const user = req.body;
-  const username = res.locals.username;
-  mysqlConnection.query('SELECT * FROM signup where username =? and password =?', [username, user.oldpassword], (err, rows, results) => {
+  const username = req.body.username;
+  const oldpassword = req.body.oldpassword;
+  const newpassword = req.body.newpassword;
+  mysqlConnection.query('SELECT * FROM signup where username =? and password =?', [username, oldpassword], (err, results) => {
+    console.log(results.length);
     if (!err) {
-      if (!results) {
+      if (results.length <= 0) {
         return res.send("incorrect");
       }
-      else if (results[0].password == user.oldpassword) {
-        mysqlConnection.query('UPDATE signup set password = ? where username =?', [user.newpassword, username], (err, results) => {
+      else if (results[0].password == oldpassword) {
+        mysqlConnection.query('UPDATE signup set password = ? where username =?', [newpassword, username], (err, results) => {
           if (!err) {
             return res.send("password updated")
           }
