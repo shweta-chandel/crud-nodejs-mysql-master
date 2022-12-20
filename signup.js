@@ -1,8 +1,10 @@
 const mysql = require('mysql');
 const express = require('express');
-const bodyparser = require('body-parser');
 var app = express();
-// const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const secretKey = "secretKey";
+const bodyparser = require('body-parser');
+const jwtDecode = require('jwt-decode')
 app.use(bodyparser.json());
 
 
@@ -28,6 +30,8 @@ app.get('/', (req, res) => {
     });
   });
   
+
+  //register//
   app.post('/register', (req, res) => {
     const first_name = req.body.first_name;
     const last_name = req.body.last_name;
@@ -51,10 +55,69 @@ app.get('/', (req, res) => {
 });
 
 
+//new image//
+const multer = require('multer');
+const upload = multer({
+    storage:multer.diskStorage({
+        destination:function(req, file,cb)
+        {
+            cb(null, "upload")
+        },
+        filename:function(req, file,cb)
+        {
+            cb(null,file.filename + "-" + Date.now() + ".jpg")
+        }
+    })
+}).single("user_file");
+app.post("/upload",upload,(req, res) => {
+    res.send("file upload")
+});
 
-  
-  
+//login//
+ app.get('/login', (req, res) => {
+  console.log(req.body)
+  const username = req.body.username;
+  const password = req.body.password;
+const data = { username, password };
+mysqlConnection.query('SELECT * FROM signup WHERE username = ? AND password = ?', [username, password], function (err, rows, fields) {
+  if (rows.length > 0) {
+    return res.send("logged in")
+}
+   else {
+    return res.send("not found");
+  }
+})
+})
 
+// changed password//
+app.get('/changedpassword',(req, res) => {
+  const user = req.body;
+  const username = req.body.username;
+  const oldpassword = req.body.oldpassword;
+  mysqlConnection.query('SELECT * FROM signup where username =? and password =?', [username,oldpassword],(err,results)=>{
+    if(!err){
+      if(results.length <=0)
+      {
+        return res.send("incorrect");
+        
+      }
+      else if(results[0].password == user.password){
+  mysqlConnection.query('UPDATE signup set password = ? where username =?', [user.newPassword,username], (err, results)=>{
+    if(!err){
+      return res.send("password updated")
+    }
+    else{
+      return res.send(err);
+    }
+  })
+      }else{
+        return res.send("something went wrong try again later")
+      }
+    }else{
+      return res.send(err);
+    }
+  })
+})
 
 
 
