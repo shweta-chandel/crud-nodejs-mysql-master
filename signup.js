@@ -54,6 +54,12 @@ app.post('/register', (req, res) => {
     if (rows.length > 0) {
       return res.send("already exist");
     }
+    if(first_name==null || first_name==""){  
+      return res.send("Name can't be blank");  
+      }
+      else if(password.length<6){  
+      return res.send("Password must be at least 6 characters long.");  
+        }  
     mysqlConnection.query("INSERT INTO signup SET ?", data, (err, results) => {
       if (err) {
         return res.send("failed");
@@ -135,6 +141,20 @@ app.post('/forgotpassword',(req,res) =>{
     })
   })
         
+
+
+  function allLetter(inputtxt)
+  {
+   var letters = /^[A-Za-z]+$/;
+   if(inputtxt.value.match(letters))
+     {
+      return true;
+     }
+   else{
+    return res.send("please enter letter only");
+  }
+}
+ 
 
 
     const port = process.env.PORT || 3000;
