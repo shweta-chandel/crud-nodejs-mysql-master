@@ -3,6 +3,7 @@ const express = require('express');
 var app = express();
 const bodyparser = require('body-parser');
 app.use(bodyparser.json());
+const bcrypt = require('bcrypt');
 
 var mysqlConnection = mysql.createConnection({
   host: 'localhost',
@@ -60,7 +61,7 @@ app.post('/register', (req, res) => {
    var letters = /^[A-Za-z]+$/;
    if(first_name.value.match(letters))
      {
-      return true;
+      return console.log(first_name);
      }
    else{
     return res.send("please enter letter only");
@@ -153,19 +154,26 @@ app.post('/forgotpassword',(req,res) =>{
     })
   })
         
+  //hash//
+  app.post('/signup1', (req, res) => {
+    var username = req.body.username;
+    var password = req.body.password;
+    var first_name = req.body.first_name;
+    const last_name = req.body.last_name;
+    let data = { first_name, last_name, username, password };
+    var hashedPassword;
+    bcrypt.genSalt(10, function (err, Salt) {
+      bcrypt.hash(password, Salt, function (err, hash) {
+        if (err) {
+          return console.log('Cannot encrypt');
+        };
+        hashedPassword = hash;
+        res.send(hash);
+      })
+    })
+  });
 
-
-  function allLetter(inputtxt)
-  {
-   var letters = /^[A-Za-z]+$/;
-   if(inputtxt.value.match(letters))
-     {
-      return true;
-     }
-   else{
-    return res.send("please enter letter only");
-  }
-}
+  
  
 
 
