@@ -1,20 +1,14 @@
 const mysql = require('mysql');
 const express = require('express');
 var app = express();
-const jwt = require('jsonwebtoken');
-const secretKey = "secretKey";
 const bodyparser = require('body-parser');
-const jwtDecode = require('jwt-decode');
-
 app.use(bodyparser.json());
-
 
 var mysqlConnection = mysql.createConnection({
   host: 'localhost',
   user: 'root',
   password: '',
   database: 'registration',
-
 });
 
 mysqlConnection.connect((err) => {
@@ -72,7 +66,7 @@ app.post("/upload", upload, (req, res) => {
 });
 
 //login//
-app.get('/login', (req, res) => {
+app.post('/login', (req, res) => {
   const username = req.body.username;
   const password = req.body.password;
   const data = { username, password };
@@ -87,7 +81,7 @@ app.get('/login', (req, res) => {
 })
 
 // changed password//
-app.get('/changedpassword', (req, res) => {
+app.post('/changedpassword', (req, res) => {
   const username = req.body.username;
   const oldpassword = req.body.oldpassword;
   const newpassword = req.body.newpassword;
@@ -118,41 +112,29 @@ app.get('/changedpassword', (req, res) => {
 })
 
 //forgot password//
-app.post('/fogotpassword',(req,res) =>{
-  const user = req.body;
-  const email = req.body.email;
-    mysqlConnection.query(`SELECT * FROM signup WHERE email = "${email}"`, (err, rows, results) => {
+app.post('/forgotpassword',(req,res) =>{
+  const username = req.body.username;
+  var newpassword = req.body.newpassword;
+    mysqlConnection.query(`SELECT * FROM signup WHERE username = "${username}"`, (err,results) => {
       if (!err) {
-        if (results.length <= 0) {
-          return res.send("password sent successfully in your email");
+        if (results.length != 0) {
+          mysqlConnection.query('UPDATE signup set password = ? where username =?', [newpassword, username], (err, results) => {
+            if (!err) {
+              return res.send("password updated")
+            }
+            else {
+              return res.send(err);
+            }
+          })
+        }else{
+          return res.send("user not found");
         }
-        else{
-          mailOption ={
-          from : process.env.EMAIL,
-          to : process.env.email,
-          subject :hfjcjhcg
+      }else{
+        return res.send(err);
       }
-        transporter.sendMails(mailOption, function(err, info){
-          if(err){
-            console.log(err)
-          }else{
-            console.log("email send: " + info.reason)
-          }
-        })
-      }
-    }
-    else{
-      return res.status(500).json(err)
-    }
+    })
   })
-})
-
-
-
-
-
-
-
+        
 
 
     const port = process.env.PORT || 3000;
