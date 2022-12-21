@@ -53,7 +53,20 @@ app.post('/register', (req, res) => {
   mysqlConnection.query("SELECT * FROM signup WHERE username='" + username + "' limit 1", async (err, rows) => {
     if (rows.length > 0) {
       return res.send("already exist");
-    }
+    }else{
+      
+  function allLetter(first_name)
+  {
+   var letters = /^[A-Za-z]+$/;
+   if(first_name.value.match(letters))
+     {
+      return true;
+     }
+   else{
+    return res.send("please enter letter only");
+  }
+}
+  }
     if(first_name==null || first_name==""){  
       return res.send("Name can't be blank");  
       }
@@ -92,7 +105,6 @@ app.post('/changedpassword', (req, res) => {
   const oldpassword = req.body.oldpassword;
   const newpassword = req.body.newpassword;
   mysqlConnection.query('SELECT * FROM signup where username =? and password =?', [username, oldpassword], (err, results) => {
-    console.log(results.length);
     if (!err) {
       if (results.length <= 0) {
         return res.send("incorrect");
