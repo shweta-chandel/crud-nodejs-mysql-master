@@ -25,30 +25,6 @@ app.get('/', (req, res) => {
   });
 });
 
-
-//register//
-app.post('/register', (req, res) => {
-  const first_name = req.body.first_name;
-  const last_name = req.body.last_name;
-  const username = req.body.username;
-  const password = req.body.password;
-  let data = { first_name, last_name, username, password };
-  mysqlConnection.query("SELECT * FROM signup WHERE username='" + username + "' limit 1", async (err, rows, fields) => {
-    if (rows.length > 0) {
-      return res.send("already exist");
-    } else if (password !== null) {
-      return res.send('Passwords must 6 character')
-    }
-    mysqlConnection.query("INSERT INTO signup SET ?", data, (err, results) => {
-      if (err) {
-        return res.send(err);
-      } else {
-        return res.send('success');
-      }
-    })
-  });
-});
-
 //new image//
 const multer = require('multer');
 const upload = multer({
@@ -64,6 +40,30 @@ const upload = multer({
 app.post("/upload", upload, (req, res) => {
   res.send("file upload")
 });
+
+
+
+//register//
+app.post('/register', (req, res) => {
+  const first_name = req.body.first_name;
+  const last_name = req.body.last_name;
+  const username = req.body.username;
+  const password = req.body.password;
+  let data = { first_name, last_name, username, password };
+  mysqlConnection.query("SELECT * FROM signup WHERE username='" + username + "' limit 1", async (err, rows) => {
+    if (rows.length > 0) {
+      return res.send("already exist");
+    }
+    mysqlConnection.query("INSERT INTO signup SET ?", data, (err, results) => {
+      if (err) {
+        return res.send("failed");
+      } else {
+        return res.send('success');
+      }
+    })
+  });
+});
+
 
 //login//
 app.post('/login', (req, res) => {
