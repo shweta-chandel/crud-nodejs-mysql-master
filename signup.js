@@ -51,29 +51,26 @@ app.post('/register', (req, res) => {
   const username = req.body.username;
   const password = req.body.password;
   let data = { first_name, last_name, username, password };
-  mysqlConnection.query("SELECT * FROM signup WHERE username='" + username + "' limit 1", async (err, rows) => {
-    if (rows.length > 0) {
-      return res.send("already exist");
-    }else{
-      
-  function allLetter(first_name)
-  {
-   var letters = /^[A-Za-z]+$/;
-   if(first_name.value.match(letters))
+  var regex = /^[A-Za-z]+$/;
+  mysqlConnection.query("SELECT * FROM signup WHERE username='" + username + "' limit 1", (err, rows) => {
+    if (!first_name || !last_name || !username || !password) {
+      return res.send("any field can't be blank");  
+      }
+      else if(password.length<6){  
+      return res.send("Password must be at least 6 characters long.");  
+        } 
+        if (rows.length > 0) {
+          return res.send("already exist");
+        }  
+        function validate(first_name){
+    if(first_name.match(regex))
      {
-      return console.log(first_name);
+      return true;
      }
    else{
     return res.send("please enter letter only");
   }
 }
-  }
-    if(first_name==null || first_name==""){  
-      return res.send("Name can't be blank");  
-      }
-      else if(password.length<6){  
-      return res.send("Password must be at least 6 characters long.");  
-        }  
     mysqlConnection.query("INSERT INTO signup SET ?", data, (err, results) => {
       if (err) {
         return res.send("failed");
@@ -81,8 +78,9 @@ app.post('/register', (req, res) => {
         return res.send('success');
       }
     })
+  })
   });
-});
+
 
 
 //login//
