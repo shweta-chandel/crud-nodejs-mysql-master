@@ -42,8 +42,6 @@ app.post("/upload", upload, (req, res) => {
   res.send("file upload")
 });
 
-
-
 //register//
 app.post('/register', (req, res) => {
   const first_name = req.body.first_name;
@@ -52,34 +50,41 @@ app.post('/register', (req, res) => {
   const password = req.body.password;
   let data = { first_name, last_name, username, password };
   var regex = /^[A-Za-z]+$/;
+  var hashedPassword;
   mysqlConnection.query("SELECT * FROM signup WHERE username='" + username + "' limit 1", (err, rows) => {
     if (!first_name || !last_name || !username || !password) {
-      return res.send("any field can't be blank");  
+      return res.send("any field can't be blank");
+    }
+      else {
+        return res.send(err);
       }
-      else if(password.length<6){  
-      return res.send("Password must be at least 6 characters long.");  
-        } 
-        if (rows.length > 0) {
-          return res.send("already exist");
-        }  
-        function validate(first_name){
-    if(first_name.match(regex))
-     {
-      return true;
-     }
-   else{
-    return res.send("please enter letter only");
-  }
-}
-    mysqlConnection.query("INSERT INTO signup SET ?", data, (err, results) => {
-      if (err) {
-        return res.send("failed");
-      } else {
-        return res.send('success');
-      }
-    })
+    if(password.length < 6) {
+      return res.send("Password must be at least 6 characters long.");
+    }
+    else {
+      return res.send(err)
+    }
+   if  (rows.length > 0) {
+      return res.send("already exist");
+    }
+    else {
+      return res.send(err)
+    }
+     if (!regex.test(first_name)) {
+      return res.send('letters only.');
+    } else 
+    {
+      return res.send('Valid name given.');
+    }
   })
-  });
+  mysqlConnection.query("INSERT INTO signup SET ?", data, (err, results) => {
+    if (err) {
+      return res.send("failed");
+    } else {
+      return res.send('success');
+    }
+  })
+})
 
 
 
@@ -129,51 +134,51 @@ app.post('/changedpassword', (req, res) => {
 })
 
 //forgot password//
-app.post('/forgotpassword',(req,res) =>{
+app.post('/forgotpassword', (req, res) => {
   const username = req.body.username;
   var newpassword = req.body.newpassword;
-    mysqlConnection.query(`SELECT * FROM signup WHERE username = "${username}"`, (err,results) => {
-      if (!err) {
-        if (results.length != 0) {
-          mysqlConnection.query('UPDATE signup set password = ? where username =?', [newpassword, username], (err, results) => {
-            if (!err) {
-              return res.send("password updated")
-            }
-            else {
-              return res.send(err);
-            }
-          })
-        }else{
-          return res.send("user not found");
-        }
-      }else{
-        return res.send(err);
+  mysqlConnection.query(`SELECT * FROM signup WHERE username = "${username}"`, (err, results) => {
+    if (!err) {
+      if (results.length != 0) {
+        mysqlConnection.query('UPDATE signup set password = ? where username =?', [newpassword, username], (err, results) => {
+          if (!err) {
+            return res.send("password updated")
+          }
+          else {
+            return res.send(err);
+          }
+        })
+      } else {
+        return res.send("user not found");
       }
+    } else {
+      return res.send(err);
+    }
+  })
+})
+
+//hash//
+app.post('/signup1', (req, res) => {
+  var username = req.body.username;
+  var password = req.body.password;
+  var first_name = req.body.first_name;
+  const last_name = req.body.last_name;
+  let data = { first_name, last_name, username, password };
+  var hashedPassword;
+  bcrypt.genSalt(10, function (err, Salt) {
+    bcrypt.hash(password, Salt, function (err, hash) {
+      if (err) {
+        return console.log('Cannot encrypt');
+      };
+      hashedPassword = hash;
+      res.send(hash);
     })
   })
-        
-  //hash//
-  app.post('/signup1', (req, res) => {
-    var username = req.body.username;
-    var password = req.body.password;
-    var first_name = req.body.first_name;
-    const last_name = req.body.last_name;
-    let data = { first_name, last_name, username, password };
-    var hashedPassword;
-    bcrypt.genSalt(10, function (err, Salt) {
-      bcrypt.hash(password, Salt, function (err, hash) {
-        if (err) {
-          return console.log('Cannot encrypt');
-        };
-        hashedPassword = hash;
-        res.send(hash);
-      })
-    })
-  });
-
-  
- 
+});
 
 
-    const port = process.env.PORT || 3000;
-    app.listen(port, () => console.log(`Listening on port ${port}..`));
+
+
+
+const port = process.env.PORT || 3000;
+app.listen(port, () => console.log(`Listening on port ${port}..`));
