@@ -50,44 +50,35 @@ app.post('/register', (req, res) => {
   const password = req.body.password;
   let data = { first_name, last_name, username, password };
   var regex = /^[A-Za-z]+$/;
-  var hashedPassword;
+  if (!first_name || !last_name || !username || !password) {
+    return res.send("any field can't be blank");
+  }
+  const cryptedPassword = bcrypt.hashSync(password);
+  if(password.length < 6) {
+    return res.send("Password must be at least 6 characters long.");
+  }
+  if (!first_name.match(regex)) {
+    return res.send('first name should be letters only.');
+  }
+  if (!last_name.match(regex)) {
+    return res.send('last name should be letters only.');
+  }
   mysqlConnection.query("SELECT * FROM signup WHERE username='" + username + "' limit 1", (err, rows) => {
-    if (!first_name || !last_name || !username || !password) {
-      return res.send("any field can't be blank");
-    }
-      else {
-        return res.send(err);
-      }
-    if(password.length < 6) {
-      return res.send("Password must be at least 6 characters long.");
-    }
-    else {
-      return res.send(err)
-    }
-   if  (rows.length > 0) {
-      return res.send("already exist");
-    }
-    else {
-      return res.send(err)
-    }
-     if (!regex.test(first_name)) {
-      return res.send('letters only.');
-    } else 
-    {
-      return res.send('Valid name given.');
+    if  (rows.length > 0) {
+      return res.send("email already exist");
+    }else{
+      mysqlConnection.query("INSERT INTO signup SET ?", data, (err, results) => {
+        if (err) {
+          return res.send("failed");
+        } else {
+          return res.send('success');
+        }
+      })
     }
   })
-  mysqlConnection.query("INSERT INTO signup SET ?", data, (err, results) => {
-    if (err) {
-      return res.send("failed");
-    } else {
-      return res.send('success');
-    }
-  })
+
 })
-
-
-
+  
 //login//
 app.post('/login', (req, res) => {
   const username = req.body.username;
@@ -142,14 +133,14 @@ app.post('/forgotpassword', (req, res) => {
       if (results.length != 0) {
         mysqlConnection.query('UPDATE signup set password = ? where username =?', [newpassword, username], (err, results) => {
           if (!err) {
-            return res.send("password updated")
+            return res.send("forget password updated")
           }
           else {
             return res.send(err);
           }
         })
       } else {
-        return res.send("user not found");
+        return res.send("user not found cant updated forget password");
       }
     } else {
       return res.send(err);
