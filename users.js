@@ -28,7 +28,6 @@ app.get('/',(req, res) => {
 });
 
   app.post('/register', (req, res) => {
-    console.log(req.body);
     const username = req.body.username;
     const email = req.body.email;
     const password = req.body.password;
@@ -47,13 +46,13 @@ app.get('/',(req, res) => {
         }
       });
     });
-  });
+  })
   
 app.post('/login', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
   const data = {email, password};
-  conn.connect('SELECT * FROM users WHERE email = ? AND password = ?', [email, password], function (err, rows) {
+  conn.query("SELECT * FROM users WHERE email = ? AND password = ?", [email, password], function (err, rows) {
     if (rows.length > 0) {
       return res.send("logged in")
     }
@@ -62,12 +61,11 @@ app.post('/login', (req, res) => {
     }
   })
 })
-
+  
 app.post('/update',(req, res) => {
   let sql = "UPDATE users SET username='"+req.body.username+"',email='"+req.body.email+"',password='"+req.body.password+"', type='"+req.body.type+"' WHERE id="+req.body.id;
-   conn.connect(sql, (err, rows) => {
+  let query = conn.query(sql, (err, results) => {
   if(err) throw err;
-  console.log(rows);
     res.send("successfully profile updated");
   });
 });
@@ -80,6 +78,7 @@ const storage = multer.diskStorage({
 })
 const upload = multer({
   storage : storage
+  
 })
 
 app.post("/upload", upload.single('profile'),(req, res)=>{
@@ -93,7 +92,17 @@ res.json({
 })
 
 
-app.post('/product', (req, res) => {
+app.post('/product',upload.single('product_images'), (req, res) => {
+  const storage = multer.diskStorage({
+    destination:  './upload/images',
+    filename: (req, file, cb) => {
+      return cb(null, `${file.fieldname}_${Date.now()}${path.extname(file.originalname)}`)
+    }
+  })
+  const upload = multer({
+    storage : storage
+    
+  })
   const product_categories = req.body.product_categories;
   const product_prices = req.body.emaproduct_pricesil;
   const product_images = req.body.product_images;
@@ -116,3 +125,4 @@ app.post('/product', (req, res) => {
 
 
 app.listen(5000, () => console.log('server'));
+  
