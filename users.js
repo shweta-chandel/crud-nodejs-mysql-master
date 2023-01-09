@@ -91,26 +91,34 @@ res.json({
 })
 })
 
+app.post('/categories',(req, res) => {
+  let sql = "SELECT * FROM product_categories";
+  let query = conn.query(sql, (err, results) => {
+    if(err) throw err;
+    res.send(results)
+  });
+});
 
-app.post('/product',upload.single('product_images'), (req, res) => {
+const uploadImg = multer({storage: storage}).single('product_image');
+app.post('/product',uploadImg, (req, res) => {
   const storage = multer.diskStorage({
-    destination:  './upload/images',
-    filename: (req, file, cb) => {
-      return cb(null, `${file.fieldname}_${Date.now()}${path.extname(file.originalname)}`)
+    destination: function (req, file, cb) {
+        cb(null, './uploads');
+      },
+    filename: function (req, file, cb) {
+        cb(null, file.originalname);
     }
-  })
-  const upload = multer({
-    storage : storage
-    
-  })
+});
+  const product_name= req.body.product_name;
+  const product_price = req.body.product_price;
+  const product_image = req.file.originalname;
+  const rating = req.body.rating;
   const product_categories = req.body.product_categories;
-  const product_prices = req.body.emaproduct_pricesil;
-  const product_images = req.body.product_images;
-  const brands = req.body.brands;
-  let data = { product_categories, product_prices, product_images, brands };
-    conn.query("INSERT INTO product SET?", data, (err, results) => {
+  let data = { product_name, product_price, product_image, rating, product_categories };
+    conn.query("INSERT INTO product_details SET?", data, (err, results) => {
       if (err) {
-        return res.send("Failed");
+        console.log(err);
+        return res.send("Failed"); 
       }
       else {
         return res.send("success");
@@ -118,11 +126,7 @@ app.post('/product',upload.single('product_images'), (req, res) => {
     });
   });
 
-
-
-
-
-
+ 
 
 app.listen(5000, () => console.log('server'));
   
