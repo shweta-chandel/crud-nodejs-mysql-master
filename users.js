@@ -5,6 +5,7 @@ const bodyparser = require('body-parser');
 const app = express();
 app.use(bodyparser.json());
 const multer = require('multer');
+const { join } = require('path');
 
 const conn = mysql.createConnection({
   host: 'localhost',
@@ -92,7 +93,15 @@ res.json({
 })
 
 app.post('/categories',(req, res) => {
-  let sql = "SELECT * FROM product_categories";
+  let sql = "SELECT * FROM categories";
+  let query = conn.query(sql, (err, results) => {
+    if(err) throw err;
+    res.send(results)
+  });
+});
+
+app.post('/brands',(req, res) => {
+  let sql = "SELECT * FROM brands";
   let query = conn.query(sql, (err, results) => {
     if(err) throw err;
     res.send(results)
@@ -113,8 +122,9 @@ app.post('/product',uploadImg, (req, res) => {
   const product_price = req.body.product_price;
   const product_image = req.file.originalname;
   const rating = req.body.rating;
-  const product_categories = req.body.product_categories;
-  let data = { product_name, product_price, product_image, rating, product_categories };
+  const brands_id = req.body.brands_id ;
+  const categories_id = req.body.categories_id;
+  let data = { product_name, product_price, product_image, rating, brands_id , categories_id };
     conn.query("INSERT INTO product_details SET?", data, (err, results) => {
       if (err) {
         console.log(err);
@@ -126,6 +136,13 @@ app.post('/product',uploadImg, (req, res) => {
     });
   });
 
+  app.post('/join',(req, res) => {
+    let sql = "SELECT * FROM product_details INNER JOIN categories ON product_details.id = categories.cid";
+    let query = conn.query(sql, (err, results) => {
+      if(err) throw err;
+      res.send(results)
+    });
+  });
  
 
 app.listen(5000, () => console.log('server'));
