@@ -137,10 +137,10 @@ app.post('/product',uploadImg, (req, res) => {
   });
 
   app.post('/join',(req, res) => {
-    let sql = "SELECT * FROM product_details INNER JOIN categories ON product_details.id = categories.cid";
+    let sql = "SELECT product_details.product_name, product_details.product_price, categories.cname, brands.bname FROM product_details INNER JOIN categories ON product_details.id = catgories.cid INNER JOIN brands ON product_details.id = brands.bid";
     let query = conn.query(sql, (err, results) => {
-      if(err) throw err;
-      res.send(results)
+    if(err) throw err;
+    res.send(results)
     });
   });
  
