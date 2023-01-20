@@ -5,6 +5,7 @@ const bodyparser = require('body-parser');
 const app = express();
 app.use(bodyparser.json());
 const multer = require('multer');
+const multerStorage = multer.memoryStorage();
 const { join } = require('path');
 
 const conn = mysql.createConnection({
@@ -108,8 +109,12 @@ app.post('/brands',(req, res) => {
   });
 });
 
-const uploadImg = multer({storage: storage}).single('product_image');
-app.post('/product',uploadImg, (req, res) => {
+const uploadImg = multer({storage: storage});
+app.post('/product',uploadImg.array('product_image',10), (req, res) => {
+  if(req.files){
+    console.log(req.files)
+    console.log("file uploaded")
+  }
   const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, './uploads');
@@ -120,7 +125,7 @@ app.post('/product',uploadImg, (req, res) => {
 });
   const product_name= req.body.product_name;
   const product_price = req.body.product_price;
-  const product_image = req.file.originalname;
+  const product_image = req.body.product_image;
   const rating = req.body.rating;
   const brands_id = req.body.brands_id ;
   const categories_id = req.body.categories_id;
@@ -137,12 +142,14 @@ app.post('/product',uploadImg, (req, res) => {
   });
 
   app.post('/join',(req, res) => {
-    let sql = "SELECT * FROM product_details INNER JOIN categories ON product_details.id = categories.cid INNER JOIN brands ON product_details.id = brands.bid";
+    let sql = "SELECT * FROM product_details INNER JOIN categories ON product_details.categories_id = categories.cid INNER JOIN brands ON product_details.brands_id = brands.bid";
     let query = conn.query(sql, (err, results) => {
       if(err) throw err;
       res.send(results)
     });
   });
+
+
  
 
 app.listen(5000, () => console.log('server'));
